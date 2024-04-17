@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import {
   Box,
+  Flex,
   Heading,
   useToast,
   Table,
@@ -10,12 +11,34 @@ import {
   Tr,
   Th,
   Td,
-  IconButton
+  Button,
+  IconButton,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  useDisclosure,
+  FormControl,
+  FormLabel,
+  Input,
+  NumberInput,
+  NumberInputField
 } from '@chakra-ui/react';
 import { DeleteIcon } from '@chakra-ui/icons';
 
 function App() {
   const [products, setProducts] = useState([]);
+  const initialProductState = {
+    productName: "",
+    price: 0,
+    description: "",
+    initialStock: 0
+  };
+  const [addProduct, setAddProduct] = useState(initialProductState);
+  const { isOpen, onOpen, onClose } = useDisclosure()
   const toast = useToast();
 
   useEffect(() => {
@@ -27,6 +50,37 @@ function App() {
       .then(response => setProducts(response.data))
       .catch(error => console.error('Error fetching products:', error));
   };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setAddProduct(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = () => {
+    axios.post('/api/products', addProduct)
+      .then(() => {
+        toast({
+          title: 'Product Added',
+          description: "Product has been added successfully.",
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+        fetchProducts();
+        setAddProduct(initialProductState);
+        onClose();
+      })
+      .catch(error => {
+        toast({
+          title: 'Error',
+          description: "Failed to add product.",
+          status: 'error',
+          duration: 5000,
+          isClosable: true,
+        });
+        console.error('Error creating product:', error);
+      })
+  }
 
   const deleteProduct = (productId) => {
     axios.delete(`/api/products/${productId}`)
@@ -54,7 +108,10 @@ function App() {
 
   return (
     <Box className="App" p={3}>
-      <Heading mb={2}>Newegg Marketplace</Heading>
+      <Flex direction="row" gap={5} align="center">
+        <Heading mb={2}>Newegg Marketplace</Heading>
+        <Button onClick={onOpen}>Add Product</Button>
+      </Flex>
       <Table variant="simple">
         <Thead>
           <Tr>
@@ -86,6 +143,40 @@ function App() {
           ))}
         </Tbody>
       </Table>
+
+      <Modal isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Add a Product</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <FormControl>
+              <FormLabel>Product Name</FormLabel>
+              <Input name="productName" value={addProduct.productName} onChange={handleChange} />
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel>Price</FormLabel>
+              <NumberInput precision={2} step={0.01}>
+                <NumberInputField name="price" value={addProduct.price} onChange={handleChange} />
+              </NumberInput>
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel>Description</FormLabel>
+              <Input name="description" value={addProduct.description} onChange={handleChange} />
+            </FormControl>
+            <FormControl mt={4}>
+              <FormLabel>Initial Stock</FormLabel>
+              <NumberInput>
+                <NumberInputField name="initialStock" value={addProduct.initialStock} onChange={handleChange} />
+              </NumberInput>
+            </FormControl>
+          </ModalBody>
+
+          <ModalFooter>
+            <Button variant='ghost' onClick={handleSubmit}>Confirm</Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Box>
   );
 }
