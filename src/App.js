@@ -3,6 +3,7 @@ import axios from 'axios';
 import {
   Box,
   Flex,
+  Image,
   Heading,
   useToast,
   Table,
@@ -109,7 +110,8 @@ function App() {
   return (
     <Box className="App" p={3}>
       <Flex direction="row" gap={5} align="center">
-        <Heading mb={2}>Newegg Marketplace</Heading>
+        <Image boxSize="100px" src='https://ucontent.prdg.io/img/my-points/mg-logo/mg1948.png?v=1694022942000' alt='Newegg Logo' />
+        <Heading>Marketplace</Heading>
         <Button onClick={onOpen}>Add Product</Button>
       </Flex>
       <Table variant="simple">
